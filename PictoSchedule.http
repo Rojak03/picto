@@ -1,0 +1,92 @@
+@PictoSchedule_HostAddress = http://localhost:5091
+
+### Create a child
+POST {{PictoSchedule_HostAddress}}/api/children
+Content-Type: application/json
+
+{
+  "name": "Alex",
+  "profilePictureUrl": "https://example.com/alex.png"
+}
+
+### List children
+GET {{PictoSchedule_HostAddress}}/api/children
+Accept: application/json
+
+### Create a schedule for child id 1
+POST {{PictoSchedule_HostAddress}}/children/1/schedules
+Content-Type: application/json
+
+{
+  "title": "Weekday routine"
+}
+
+### List schedules for child id 1
+GET {{PictoSchedule_HostAddress}}/children/1/schedules
+Accept: application/json
+
+### Create a schedule item for schedule id 1
+POST {{PictoSchedule_HostAddress}}/schedules/1/items
+Content-Type: application/json
+
+{
+  "label": "Go to bed",
+  "timeOfDay": "20:00",
+  "pictogramUrl": "https://example.com/bed.png"
+}
+
+### List items for schedule id 1 (sorted by time)
+GET {{PictoSchedule_HostAddress}}/schedules/1/items
+Accept: application/json
+
+### Update item id 1 in schedule id 1
+PUT {{PictoSchedule_HostAddress}}/schedules/1/items/1
+Content-Type: application/json
+
+{
+  "label": "Turn off Alarm",
+  "timeOfDay": "08:00",
+  "pictogramUrl": "https://example.com/alarm.png"
+}
+
+### Delete item id 1 in schedule id 1
+DELETE {{PictoSchedule_HostAddress}}/schedules/1/items/1
+
+### Update a child
+PUT {{PictoSchedule_HostAddress}}/api/children/1
+Content-Type: application/json
+
+{
+  "name": "Alex Updated",
+  "profilePictureUrl": "https://example.com/alex2.png"
+}
+
+### Delete a child
+DELETE {{PictoSchedule_HostAddress}}/api/children/1
+
+### Add a parent (register)
+POST {{PictoSchedule_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "name": "Parent Name",
+  "email": "test@example.com",
+  "password": "securepassword"
+}
+### Login - correct credentials
+POST {{PictoSchedule_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "securepassword"
+}
+
+### Login - wrong password
+POST {{PictoSchedule_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "wrongpassword"
+}
