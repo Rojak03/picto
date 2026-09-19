@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using PictoSchedule.Data;
 using PictoSchedule.Models;
@@ -8,20 +9,43 @@ public static class ScheduleItemEndpoints
 {
     public static void MapScheduleItemEndpoints(this WebApplication app)
     {
-        app.MapGet("/schedules/{scheduleId}/items", async (int scheduleId, AppDbContext db) =>
-            await db.ScheduleItems.Where(x => x.ScheduleId == scheduleId).OrderBy(x => x.TimeOfDay).ToListAsync());
-
-        app.MapPost("/schedules/{scheduleId}/items", async (int scheduleId, ScheduleItem newItem, AppDbContext db) =>
+        app.MapGet("/schedules/{scheduleId}/items", async (ClaimsPrincipal user, int scheduleId, AppDbContext db) =>
         {
+            var parentId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (!await db.Schedules.AnyAsync(s => s.Id == scheduleId && s.Child != null && s.Child.ParentId == parentId))
+            {
+                return Results.Forbid();
+            }
+
+            var scheduleItems = await db.ScheduleItems.Where(x => x.ScheduleId == scheduleId).OrderBy(x => x.TimeOfDay).ToListAsync();
+
+            return Results.Ok(scheduleItems);
+
+        }).RequireAuthorization();
+
+        app.MapPost("/schedules/{scheduleId}/items", async (ClaimsPrincipal user, int scheduleId, ScheduleItem newItem, AppDbContext db) =>
+        {
+            var parentId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (!await db.Schedules.AnyAsync(s => s.Id == scheduleId && s.Child != null && s.Child.ParentId == parentId))
+            {
+                return Results.Forbid();
+            }
+
             newItem.ScheduleId = scheduleId;
             db.ScheduleItems.Add(newItem);
             await db.SaveChangesAsync();
             return Results.Created($"/schedules/{newItem.ScheduleId}/items/{newItem.Id}", newItem);
-        });
+        }).RequireAuthorization();
 
-        app.MapPut("/schedules/{scheduleId}/items/{id}", async (int scheduleId, int id, ScheduleItem updateItem, AppDbContext db) =>
+        app.MapPut("/schedules/{scheduleId}/items/{id}", async (ClaimsPrincipal user, int scheduleId, int id, ScheduleItem updateItem, AppDbContext db) =>
         {
-            var selectedItem = await db.ScheduleItems.FindAsync(id);
+            var parentId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (!await db.Schedules.AnyAsync(s => s.Id == scheduleId && s.Child != null && s.Child.ParentId == parentId))
+            {
+                return Results.Forbid();
+            }
+
+            var selectedItem = await db.ScheduleItems.Where(s => s.Id == id && s.ScheduleId == scheduleId).FirstOrDefaultAsync();
             if (selectedItem is null)
             {
                 return Results.NotFound("Could not find schedule item");
@@ -32,11 +56,16 @@ public static class ScheduleItemEndpoints
 
             await db.SaveChangesAsync();
             return Results.Ok(selectedItem);
-        });
+        }).RequireAuthorization();
 
-        app.MapDelete("/schedules/{scheduleId}/items/{id}", async (int scheduleId, int id, AppDbContext db) =>
+        app.MapDelete("/schedules/{scheduleId}/items/{id}", async (ClaimsPrincipal user, int scheduleId, int id, AppDbContext db) =>
         {
-            var selectedItem = await db.ScheduleItems.FindAsync(id);
+            var parentId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (!await db.Schedules.AnyAsync(s => s.Id == scheduleId && s.Child != null && s.Child.ParentId == parentId))
+            {
+                return Results.Forbid();
+            }
+            var selectedItem = await db.ScheduleItems.Where(s => s.Id == id && s.ScheduleId == scheduleId).FirstOrDefaultAsync();
             if (selectedItem is null)
             {
                 return Results.NotFound("Could not find schedule item");
@@ -44,6 +73,6 @@ public static class ScheduleItemEndpoints
             db.ScheduleItems.Remove(selectedItem);
             await db.SaveChangesAsync();
             return Results.NoContent();
-        });
+        }).RequireAuthorization();
     }
 }

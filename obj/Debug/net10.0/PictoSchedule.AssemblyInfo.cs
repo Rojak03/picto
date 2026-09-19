@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PictoSchedule")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ad8d7883ad4a41f4f6cd7b843bb452d8b4cd87b7")]
 [assembly: System.Reflection.AssemblyProductAttribute("PictoSchedule")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PictoSchedule")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
